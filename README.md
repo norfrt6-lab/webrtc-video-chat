@@ -8,16 +8,16 @@ Real-time video conferencing application with advanced collaboration features bu
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Client (Next.js)                        │
 │                                                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │
-│  │  Pages    │  │Components│  │  Hooks   │  │ Zustand Stores│  │
-│  │          │  │          │  │          │  │               │  │
-│  │ Lobby    │  │ VideoGrid│  │ useSocket│  │ useRoomStore  │  │
-│  │ Room/[id]│  │ VideoTile│  │ useWebRTC│  │ useChatStore  │  │
-│  │ History  │  │ ControlBar│ │ useMedia │  │ useMediaStore │  │
-│  │          │  │ ChatPanel│  │ useRecord│  │ usePeerStore  │  │
-│  │          │  │ Whiteboard│ │ useFile  │  │ useUIStore    │  │
-│  │          │  │ StatsPanel│ │ useNoise │  │               │  │
-│  └──────────┘  └──────────┘  └──────────┘  └───────────────┘  │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────────┐    │
+│  │  Pages   │  │Components│  │  Hooks   │  │ Zustand Stores│    │
+│  │          │  │          │  │          │  │               │    │
+│  │ Lobby    │  │ VideoGrid│  │ useSocket│  │ useRoomStore  │    │
+│  │ Room/[id]│  │ VideoTile│  │ useWebRTC│  │ useChatStore  │    │
+│  │ History  │  │ ControlBar│ │ useMedia │  │ useMediaStore │    │
+│  │          │  │ ChatPanel│  │ useRecord│  │ usePeerStore  │    │
+│  │          │  │ Whiteboard│ │ useFile  │  │ useUIStore    │    │
+│  │          │  │ StatsPanel│ │ useNoise │  │               │    │
+│  └──────────┘  └──────────┘  └──────────┘  └───────────────┘    │
 │                        │                                        │
 │                   Socket.io Client                              │
 └────────────────────────┼────────────────────────────────────────┘
@@ -25,28 +25,28 @@ Real-time video conferencing application with advanced collaboration features bu
 ┌────────────────────────┼────────────────────────────────────────┐
 │                   Server (Express + Socket.io)                  │
 │                        │                                        │
-│  ┌─────────────────────┼──────────────────────────────────┐    │
-│  │              Socket.io Event Handlers                   │    │
-│  │  ┌──────┐ ┌─────────┐ ┌────┐ ┌─────┐ ┌──────────────┐│    │
-│  │  │ Room │ │Signaling│ │Chat│ │Media│ │  Reactions   ││    │
-│  │  └──────┘ └─────────┘ └────┘ └─────┘ │  Whiteboard  ││    │
-│  │                                       └──────────────┘│    │
-│  └────────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────┼──────────────────────────────────┐     │
+│  │              Socket.io Event Handlers                  │     │
+│  │  ┌──────┐ ┌─────────┐ ┌────┐ ┌─────┐ ┌──────────────┐  │     │
+│  │  │ Room │ │Signaling│ │Chat│ │Media│ │  Reactions   │  │     │
+│  │  └──────┘ └─────────┘ └────┘ └─────┘ │  Whiteboard  │  │     │
+│  │                                      └──────────────┘  │     │
+│  └────────────────────────────────────────────────────────┘     │
 │                                                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │  REST API    │  │  Middleware   │  │     SQLite DB        │  │
-│  │ /api/room    │  │  Rate Limit  │  │  meetings            │  │
-│  │ /api/history │  │  Auth (bcrypt)│ │  chat_logs           │  │
-│  │ /api/ice     │  │  Sanitize    │  │  participants        │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │  REST API    │  │  Middleware   │  │     SQLite DB       │   │
+│  │ /api/room    │  │  Rate Limit  │  │  meetings            │   │
+│  │ /api/history │  │  Auth (bcrypt)│ │  chat_logs           │   │
+│  │ /api/ice     │  │  Sanitize    │  │  participants        │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────┐
-│                    Peer-to-Peer (WebRTC)                        │
-│                                                                 │
-│   Browser A ◄──── RTCPeerConnection (Video/Audio) ────► Browser B│
-│              ◄──── RTCDataChannel (File Transfer) ────►         │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                    Peer-to-Peer (WebRTC)                             │
+│                                                                      │
+│   Browser A ◄──── RTCPeerConnection (Video/Audio) ────► Browser B   │
+│              ◄──── RTCDataChannel (File Transfer) ────►             │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Features
