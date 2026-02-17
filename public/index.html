@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC Video Chat</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>WebRTC Video Chat</h1>
+      <p class="subtitle">Peer-to-peer video conferencing</p>
+    </header>
+
+    <div id="lobby" class="panel">
+      <h2>Join a Room</h2>
+      <div class="form-group">
+        <label for="username">Display Name</label>
+        <input type="text" id="username" placeholder="Enter your name" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="room">Room ID</label>
+        <input type="text" id="room" placeholder="Enter room ID or leave blank to create">
+      </div>
+      <button id="joinBtn" class="btn btn-primary">Join Room</button>
+    </div>
+
+    <div id="room-view" class="panel hidden">
+      <div class="room-header">
+        <span id="room-id-display"></span>
+        <div class="room-actions">
+          <button id="copyRoomBtn" class="btn btn-sm">Copy Room Link</button>
+          <button id="leaveBtn" class="btn btn-sm btn-danger">Leave</button>
+        </div>
+      </div>
+      <div id="video-grid" class="video-grid">
+        <div class="video-wrapper local">
+          <video id="localVideo" autoplay muted playsinline></video>
+          <span class="video-label">You</span>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="toggleVideo" class="btn btn-control active" title="Toggle Camera">Camera</button>
+        <button id="toggleAudio" class="btn btn-control active" title="Toggle Mic">Mic</button>
+        <button id="shareScreen" class="btn btn-control" title="Share Screen">Screen</button>
+      </div>
+    </div>
+
+    <div id="chat-panel" class="panel hidden">
+      <h3>Chat</h3>
+      <div id="messages" class="messages"></div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button id="sendMsg" class="btn btn-primary btn-sm">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
