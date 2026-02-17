@@ -1,63 +1,416 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebRTC Video Chat</title>
-  <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1>WebRTC Video Chat</h1>
-      <p class="subtitle">Peer-to-peer video conferencing</p>
-    </header>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WebRTC Video Chat</title>
+        <link rel="stylesheet" href="/css/style.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>WebRTC Video Chat</h1>
+                <p class="subtitle">Peer-to-peer video conferencing</p>
+                <a href="/history.html" class="history-link">Meeting History</a>
+            </header>
 
-    <div id="lobby" class="panel">
-      <h2>Join a Room</h2>
-      <div class="form-group">
-        <label for="username">Display Name</label>
-        <input type="text" id="username" placeholder="Enter your name" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label for="room">Room ID</label>
-        <input type="text" id="room" placeholder="Enter room ID or leave blank to create">
-      </div>
-      <button id="joinBtn" class="btn btn-primary">Join Room</button>
-    </div>
+            <main>
+                <!-- Lobby -->
+                <div id="lobby" class="panel lobby-panel">
+                    <h2>Join a Room</h2>
+                    <div class="form-group">
+                        <label for="username">Display Name</label>
+                        <input
+                            type="text"
+                            id="username"
+                            placeholder="Enter your name"
+                            autocomplete="off"
+                            maxlength="30"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="room">Room ID</label>
+                        <input
+                            type="text"
+                            id="room"
+                            placeholder="Enter room ID or leave blank to create"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="roomPassword"
+                            >Room Password (optional)</label
+                        >
+                        <input
+                            type="password"
+                            id="roomPassword"
+                            placeholder="Set or enter room password"
+                        />
+                    </div>
+                    <button id="joinBtn" class="btn btn-primary btn-block">
+                        Join Room
+                    </button>
+                </div>
 
-    <div id="room-view" class="panel hidden">
-      <div class="room-header">
-        <span id="room-id-display"></span>
-        <div class="room-actions">
-          <button id="copyRoomBtn" class="btn btn-sm">Copy Room Link</button>
-          <button id="leaveBtn" class="btn btn-sm btn-danger">Leave</button>
+                <!-- Room View -->
+                <div id="room-view" class="panel hidden">
+                    <nav class="room-header" aria-label="Room controls">
+                        <div class="room-info">
+                            <span id="room-id-display"></span>
+                            <span class="participant-badge" title="Participants"
+                                ><span id="participantCount">1</span></span
+                            >
+                        </div>
+                        <div class="room-actions">
+                            <button
+                                id="copyRoomBtn"
+                                class="btn btn-sm"
+                                title="Copy invite link"
+                            >
+                                Copy Link
+                            </button>
+                            <button
+                                id="participantsBtn"
+                                class="btn btn-sm"
+                                title="Show participants"
+                            >
+                                Participants
+                            </button>
+                            <button
+                                id="chatToggleBtn"
+                                class="btn btn-sm"
+                                title="Toggle chat"
+                            >
+                                Chat
+                                <span id="chatBadge" class="badge hidden"
+                                    >0</span
+                                >
+                            </button>
+                            <button
+                                id="whiteboardBtn"
+                                class="btn btn-sm"
+                                title="Whiteboard"
+                            >
+                                Whiteboard
+                            </button>
+                            <button
+                                id="statsBtn"
+                                class="btn btn-sm"
+                                title="Network stats"
+                            >
+                                Stats
+                            </button>
+                            <button
+                                id="settingsBtn"
+                                class="btn btn-sm"
+                                title="Device settings"
+                            >
+                                Settings
+                            </button>
+                            <button
+                                id="lockBtn"
+                                class="btn btn-sm hidden"
+                                title="Lock/Unlock room"
+                            >
+                                Lock
+                            </button>
+                            <button
+                                id="leaveBtn"
+                                class="btn btn-sm btn-danger"
+                                title="Leave room"
+                            >
+                                Leave
+                            </button>
+                        </div>
+                    </nav>
+
+                    <div class="room-body">
+                        <div id="video-grid" class="video-grid" data-count="1">
+                            <div class="video-wrapper local">
+                                <video
+                                    id="localVideo"
+                                    autoplay
+                                    muted
+                                    playsinline
+                                ></video>
+                                <span class="video-label" id="localLabel"
+                                    >You</span
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Participants Sidebar -->
+                        <aside
+                            id="participantsSidebar"
+                            class="sidebar hidden"
+                            aria-label="Participants list"
+                        >
+                            <div class="sidebar-header">
+                                <h3>Participants</h3>
+                                <button
+                                    id="closeParticipants"
+                                    class="btn-icon"
+                                    title="Close"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                            <div
+                                id="participantsList"
+                                class="participants-list"
+                            ></div>
+                        </aside>
+
+                        <!-- Stats Panel -->
+                        <aside
+                            id="statsPanel"
+                            class="sidebar hidden"
+                            aria-label="Network statistics"
+                        >
+                            <div class="sidebar-header">
+                                <h3>Network Stats</h3>
+                                <button
+                                    id="closeStats"
+                                    class="btn-icon"
+                                    title="Close"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                            <div id="statsBody" class="stats-body"></div>
+                        </aside>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="controls">
+                        <button
+                            id="toggleVideo"
+                            class="btn btn-control active"
+                            title="Toggle Camera"
+                        >
+                            Camera
+                        </button>
+                        <button
+                            id="toggleAudio"
+                            class="btn btn-control active"
+                            title="Toggle Microphone"
+                        >
+                            Mic
+                        </button>
+                        <button
+                            id="shareScreen"
+                            class="btn btn-control"
+                            title="Share Screen"
+                        >
+                            Screen
+                        </button>
+                        <button
+                            id="recordBtn"
+                            class="btn btn-control"
+                            title="Record meeting"
+                        >
+                            Record
+                        </button>
+                        <button
+                            id="handRaiseBtn"
+                            class="btn btn-control"
+                            title="Raise hand"
+                        >
+                            Raise Hand
+                        </button>
+                        <button
+                            id="noiseBtn"
+                            class="btn btn-control"
+                            title="Noise suppression"
+                        >
+                            Noise: Off
+                        </button>
+                        <button
+                            id="fileBtn"
+                            class="btn btn-control"
+                            title="Send file"
+                        >
+                            File
+                        </button>
+                        <input type="file" id="fileInput" class="hidden" />
+                    </div>
+
+                    <!-- Recording Indicator -->
+                    <div id="recordIndicator" class="record-indicator hidden">
+                        <span class="rec-dot"></span>
+                        <span>REC</span>
+                        <span id="recordTimer">00:00</span>
+                    </div>
+
+                    <!-- Emoji Reactions Bar -->
+                    <div id="reactionBar" class="reaction-bar"></div>
+
+                    <!-- File Progress -->
+                    <div id="fileProgress" class="file-progress hidden"></div>
+                </div>
+
+                <!-- Chat Panel -->
+                <div id="chat-panel" class="panel hidden">
+                    <div class="chat-header"><h3>Chat</h3></div>
+                    <div
+                        id="messages"
+                        class="messages"
+                        role="log"
+                        aria-live="polite"
+                    ></div>
+                    <div class="chat-input">
+                        <input
+                            type="text"
+                            id="chatInput"
+                            placeholder="Type a message..."
+                            maxlength="500"
+                            autocomplete="off"
+                        />
+                        <button id="sendMsg" class="btn btn-primary btn-sm">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Floating Emoji Container -->
+            <div id="reactionsContainer" class="reactions-container"></div>
+
+            <!-- Whiteboard Overlay -->
+            <div id="whiteboardOverlay" class="whiteboard-overlay hidden">
+                <div class="wb-toolbar">
+                    <button
+                        id="wbToolPen"
+                        class="btn btn-sm active"
+                        title="Pen"
+                    >
+                        Pen
+                    </button>
+                    <button id="wbToolEraser" class="btn btn-sm" title="Eraser">
+                        Eraser
+                    </button>
+                    <input
+                        type="color"
+                        id="wbColorPicker"
+                        value="#ffffff"
+                        title="Color"
+                    />
+                    <input
+                        type="range"
+                        id="wbStrokeWidth"
+                        min="1"
+                        max="20"
+                        value="3"
+                        title="Stroke width"
+                    />
+                    <button
+                        id="wbClear"
+                        class="btn btn-sm btn-danger"
+                        title="Clear all"
+                    >
+                        Clear
+                    </button>
+                    <button id="wbExport" class="btn btn-sm" title="Export PNG">
+                        Export
+                    </button>
+                    <button
+                        id="wbClose"
+                        class="btn btn-sm"
+                        title="Close whiteboard"
+                    >
+                        Close
+                    </button>
+                </div>
+                <canvas id="whiteboardCanvas"></canvas>
+            </div>
+
+            <!-- Settings Modal -->
+            <div id="settingsModal" class="modal-overlay hidden">
+                <div class="modal" role="dialog" aria-label="Device Settings">
+                    <div class="modal-header">
+                        <h3>Settings</h3>
+                        <button
+                            id="closeSettings"
+                            class="btn-icon"
+                            title="Close"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="cameraSelect">Camera</label>
+                            <select id="cameraSelect"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="micSelect">Microphone</label>
+                            <select id="micSelect"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="virtualBgSelect"
+                                >Virtual Background</label
+                            >
+                            <select id="virtualBgSelect">
+                                <option value="none">None</option>
+                                <option value="blur">Blur</option>
+                                <option value="image">Custom Image</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="virtualBgImageInput"
+                                >Background Image</label
+                            >
+                            <input
+                                type="file"
+                                id="virtualBgImageInput"
+                                accept="image/*"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Modal -->
+            <div id="passwordModal" class="modal-overlay hidden">
+                <div class="modal" role="dialog" aria-label="Room Password">
+                    <div class="modal-header">
+                        <h3>Room Password Required</h3>
+                        <button
+                            id="passwordModalClose"
+                            class="btn-icon"
+                            title="Close"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="passwordModalInput">Password</label>
+                            <input
+                                type="password"
+                                id="passwordModalInput"
+                                placeholder="Enter room password"
+                            />
+                        </div>
+                        <button
+                            id="passwordModalSubmit"
+                            class="btn btn-primary btn-block"
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toasts -->
+            <div
+                id="toasts"
+                class="toasts-container"
+                role="status"
+                aria-live="polite"
+            ></div>
         </div>
-      </div>
-      <div id="video-grid" class="video-grid">
-        <div class="video-wrapper local">
-          <video id="localVideo" autoplay muted playsinline></video>
-          <span class="video-label">You</span>
-        </div>
-      </div>
-      <div class="controls">
-        <button id="toggleVideo" class="btn btn-control active" title="Toggle Camera">Camera</button>
-        <button id="toggleAudio" class="btn btn-control active" title="Toggle Mic">Mic</button>
-        <button id="shareScreen" class="btn btn-control" title="Share Screen">Screen</button>
-      </div>
-    </div>
 
-    <div id="chat-panel" class="panel hidden">
-      <h3>Chat</h3>
-      <div id="messages" class="messages"></div>
-      <div class="chat-input">
-        <input type="text" id="chatInput" placeholder="Type a message...">
-        <button id="sendMsg" class="btn btn-primary btn-sm">Send</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/app.js"></script>
-</body>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="module" src="/js/main.js"></script>
+    </body>
 </html>

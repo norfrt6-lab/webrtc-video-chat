@@ -1,66 +1,115 @@
-require('dotenv').config();
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const { v4: uuidv4 } = require('uuid');
-const cors = require('cors');
+const config = require("./src/server/config");
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
+const { cleanupStaleLimits } = require("./src/server/middleware/rateLimit");
+const { router: roomRoutes, setRooms } = require("./src/server/routes/rooms");
+const roomHandler = require("./src/server/handlers/room");
+const signalingHandler = require("./src/server/handlers/signaling");
+const chatHandler = require("./src/server/handlers/chat");
+const mediaHandler = require("./src/server/handlers/media");
+const reactionsHandler = require("./src/server/handlers/reactions");
+const whiteboardHandler = require("./src/server/handlers/whiteboard");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
 
-app.use(cors());
-app.use(express.static('public'));
+const allowedOrigins = config.CORS_ORIGIN || "*";
+const io = new Server(server, {
+  cors: { origin: allowedOrigins },
+  pingInterval: 10000,
+  pingTimeout: 5000,
+});
 
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.static("public"));
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  next();
+});
+
+// Shared rooms store
 const rooms = new Map();
+setRooms(rooms);
+app.use(roomRoutes);
 
-app.get('/api/room/create', (req, res) => {
-  const roomId = uuidv4().slice(0, 8);
-  rooms.set(roomId, { participants: [], createdAt: Date.now() });
-  res.json({ roomId });
+// Database
+let db = null;
+try {
+  db = require("./src/server/database");
+  console.log("SQLite database initialized");
+} catch (e) {
+  console.warn("Database not available:", e.message);
+}
+
+// History routes
+try {
+  const {
+    router: historyRoutes,
+    setDb,
+  } = require("./src/server/routes/history");
+  setDb(db);
+  app.use(historyRoutes);
+} catch (e) {
+  console.warn("History routes not available:", e.message);
+}
+
+// Socket.io connection
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+  roomHandler.register(io, socket, rooms, db);
+  signalingHandler.register(io, socket);
+  chatHandler.register(io, socket, rooms, db);
+  mediaHandler.register(io, socket, rooms);
+  reactionsHandler.register(io, socket);
+  whiteboardHandler.register(io, socket);
 });
 
-app.get('/api/room/:id', (req, res) => {
-  const room = rooms.get(req.params.id);
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-  res.json({ participants: room.participants.length });
+// Cleanup interval
+const cleanupInterval = setInterval(() => {
+  const now = Date.now();
+  rooms.forEach((room, roomId) => {
+    if (
+      room.participants.length === 0 &&
+      now - room.createdAt > config.ROOM_EXPIRY_MS
+    ) {
+      rooms.delete(roomId);
+    }
+  });
+  cleanupStaleLimits();
+}, 60000);
+
+// Start server
+server.listen(config.PORT, () => {
+  console.log(`Server running on port ${config.PORT}`);
 });
 
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('join-room', ({ roomId, userId }) => {
-    socket.join(roomId);
-    const room = rooms.get(roomId) || { participants: [], createdAt: Date.now() };
-    room.participants.push({ socketId: socket.id, userId });
-    rooms.set(roomId, room);
-    socket.to(roomId).emit('user-joined', { userId, socketId: socket.id });
-  });
-
-  socket.on('offer', ({ to, offer }) => {
-    io.to(to).emit('offer', { from: socket.id, offer });
-  });
-
-  socket.on('answer', ({ to, answer }) => {
-    io.to(to).emit('answer', { from: socket.id, answer });
-  });
-
-  socket.on('ice-candidate', ({ to, candidate }) => {
-    io.to(to).emit('ice-candidate', { from: socket.id, candidate });
-  });
-
-  socket.on('toggle-media', ({ roomId, type, enabled }) => {
-    socket.to(roomId).emit('media-toggled', { userId: socket.id, type, enabled });
-  });
-
-  socket.on('disconnect', () => {
-    rooms.forEach((room, roomId) => {
-      room.participants = room.participants.filter(p => p.socketId !== socket.id);
-      if (room.participants.length === 0) rooms.delete(roomId);
-      else io.to(roomId).emit('user-left', { socketId: socket.id });
+// Graceful shutdown
+function shutdown(signal) {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  clearInterval(cleanupInterval);
+  io.close(() => {
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
     });
   });
-});
+  // Force exit after 5 seconds
+  setTimeout(() => process.exit(1), 5000);
+}
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('Server running on port ' + PORT));
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  shutdown("uncaughtException");
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+});

@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      - PORT=3000
+      - MAX_PARTICIPANTS=8
+      - DB_PATH=data/webrtc-chat.db
+      - ROOM_PASSWORD_ENABLED=true
+    volumes:
+      - app-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  app-data:
