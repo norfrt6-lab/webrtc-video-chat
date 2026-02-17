@@ -44,8 +44,8 @@ Real-time video conferencing application with advanced collaboration features bu
 ┌──────────────────────────────────────────────────────────────────────┐
 │                    Peer-to-Peer (WebRTC)                             │
 │                                                                      │
-│   Browser A ◄──── RTCPeerConnection (Video/Audio) ────► Browser B   │
-│              ◄──── RTCDataChannel (File Transfer) ────►             │
+│   Browser A ◄──── RTCPeerConnection (Video/Audio) ────► Browser B    │
+│              ◄──── RTCDataChannel (File Transfer) ────►              │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
