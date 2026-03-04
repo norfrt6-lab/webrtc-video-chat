@@ -72,6 +72,15 @@ router.get("/api/room/:id", (req, res) => {
   });
 });
 
+router.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    rooms: rooms.size,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 router.get("/api/ice-config", (req, res) => {
   const iceServers = [
     { urls: "stun:stun.l.google.com:19302" },
