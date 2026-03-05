@@ -16,7 +16,6 @@ export function useSocket() {
   const updateParticipant = useRoomStore((s) => s.updateParticipant);
   const addMessage = useChatStore((s) => s.addMessage);
   const incrementUnread = useChatStore((s) => s.incrementUnread);
-  const sidePanel = useUIStore((s) => s.sidePanel);
   const addReaction = useUIStore((s) => s.addReaction);
   const removeReaction = useUIStore((s) => s.removeReaction);
 

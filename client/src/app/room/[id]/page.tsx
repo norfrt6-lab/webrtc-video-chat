@@ -29,11 +29,10 @@ export default function RoomPage() {
   const initialized = useRef(false);
 
   const { joinRoom, disconnect } = useSocket();
-  const { replaceTrack } = useWebRTC();
+  useWebRTC();
   const { acquireMedia, enumerateDevices } = useMediaDevices();
 
   const joined = useRoomStore((s) => s.joined);
-  const username = useRoomStore((s) => s.username);
   const sidePanel = useUIStore((s) => s.sidePanel);
   const whiteboardOpen = useUIStore((s) => s.whiteboardOpen);
   const floatingReactions = useUIStore((s) => s.floatingReactions);
@@ -55,7 +54,7 @@ export default function RoomPage() {
         await acquireMedia();
         await enumerateDevices();
         joinRoom(roomId, storedUsername);
-      } catch (err) {
+      } catch {
         toast.error("Failed to access camera/microphone");
         router.push("/");
       }

@@ -17,13 +17,11 @@ import {
   Pencil,
   PhoneOff,
   Circle,
-  Hand,
 } from "lucide-react";
 import { useMediaStore } from "@/store/useMediaStore";
 import { useUIStore } from "@/store/useUIStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useMediaDevices } from "@/hooks/useMediaDevices";
-import { getSocket } from "@/lib/socket";
 import { cn } from "@/lib/utils";
 
 export function ControlBar() {
