@@ -21,7 +21,7 @@ jobs:
           cache: npm
           cache-dependency-path: client/package-lock.json
       - run: npm ci
-      - run: npx next lint
+      - run: npm run lint
 
   typecheck:
     name: Type Check
