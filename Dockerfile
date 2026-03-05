@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install server dependencies
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev && npm install concurrently nodemon
+RUN npm install --omit=dev --ignore-scripts && npm install concurrently nodemon
 
 # Install client dependencies and build
 COPY client/package.json client/package-lock.json* ./client/
