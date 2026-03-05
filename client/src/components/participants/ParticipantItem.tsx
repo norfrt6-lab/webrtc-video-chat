@@ -14,7 +14,7 @@ export function ParticipantItem({
   username,
   videoEnabled,
   audioEnabled,
-  isLocal,
+  isLocal: _isLocal,
   handRaised,
 }: ParticipantItemProps) {
   return (
